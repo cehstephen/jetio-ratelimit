@@ -20,6 +20,9 @@ class KeyContext:
     ip: Optional[str]
     body: Dict[str, Any] = field(default_factory=dict)
     user: Optional[Any] = None
+    # Lowercase header names -> value (header names are case-insensitive
+    # per HTTP, so lookups must not depend on the caller's casing).
+    headers: Dict[str, str] = field(default_factory=dict)
 
 
 KeyFunc = Callable[[KeyContext], str]
@@ -36,6 +39,22 @@ def by_field(field_name: str) -> KeyFunc:
     def _key(ctx: KeyContext) -> str:
         value = ctx.body.get(field_name)
         return f"{field_name}:{value}" if value else f"{field_name}:missing"
+
+    return _key
+
+
+def by_header(header_name: str) -> KeyFunc:
+    """Key by a request header, e.g. by_header("x-api-key") to scope a
+    limit to the caller's API key rather than their IP -- the common case
+    for a machine-to-machine endpoint where callers authenticate with a
+    static key instead of a login session. Header names are matched
+    case-insensitively, matching HTTP semantics."""
+
+    header_name = header_name.lower()
+
+    def _key(ctx: KeyContext) -> str:
+        value = ctx.headers.get(header_name)
+        return f"{header_name}:{value}" if value else f"{header_name}:missing"
 
     return _key
 

@@ -58,6 +58,11 @@ class RateLimitMiddleware(BaseMiddleware):
         client = scope.get("client")
         ip = client[0] if client else None
 
+        # Raw ASGI headers are a list of (bytes, bytes) pairs; decode into a
+        # lowercase-keyed dict so by_header() lookups are case-insensitive
+        # regardless of how the client capitalized the header name.
+        headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
+
         # Buffer the body so key_func can read it (e.g. by_field("username")),
         # then replay it to the downstream app via a wrapped `receive` --
         # ASGI request bodies are a one-shot stream, so anyone downstream
@@ -77,7 +82,7 @@ class RateLimitMiddleware(BaseMiddleware):
         except (json.JSONDecodeError, TypeError):
             parsed_body = {}
 
-        ctx = KeyContext(ip=ip, body=parsed_body)
+        ctx = KeyContext(ip=ip, body=parsed_body, headers=headers)
         key = f"{self.name}:{self.key_func(ctx)}"
 
         result = await self.store.hit(key, self.max_attempts, self.window_seconds)

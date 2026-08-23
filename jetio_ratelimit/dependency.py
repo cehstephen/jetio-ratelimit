@@ -55,9 +55,14 @@ def make_dependency(
         if request.method in ("POST", "PUT"):
             body = await request.json()
 
+        # request.headers is a Starlette Headers object -- normalize to a
+        # plain lowercase dict so by_header() behaves identically to
+        # middleware mode regardless of the client's header casing.
+        headers = {k.lower(): v for k, v in request.headers.items()}
+
         # `name` namespaces this limit's store keys -- see middleware.py's
         # RateLimitMiddleware for why that's required, not optional.
-        ctx = KeyContext(ip=ip, body=body, user=user)
+        ctx = KeyContext(ip=ip, body=body, user=user, headers=headers)
         key = f"{name}:{key_func(ctx)}"
 
         result = await store.hit(key, max_attempts, window_seconds)
