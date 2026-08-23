@@ -6,9 +6,13 @@ for routes you don't own the handler for (like jetio-auth's `/login`) and
 as a `Depends()`-composable dependency for routes you do (a `CrudRouter`
 policy, a hand-written route).
 
-See [DESIGN.md](DESIGN.md) for the full reasoning -- why sliding window
-over token bucket, why IP-only limiting is weak against real credential
-stuffing, and the real bugs found in Jetio/jetio-auth along the way.
+- **[docs/USAGE.md](docs/USAGE.md)** -- the full guide: every mode, every
+  key function, stacking/reusing policies, handling a 429, testing your
+  integration, troubleshooting. Start here for "how do I do X."
+- **[DESIGN.md](DESIGN.md)** -- the reasoning: why sliding window over
+  token bucket, why IP-only limiting is weak against real credential
+  stuffing, and the real bugs found in Jetio/jetio-auth along the way.
+  Start here for "why does it work this way."
 
 ## Install
 
@@ -56,40 +60,16 @@ CrudRouter(
 ```
 
 Run [examples/demo_app.py](examples/demo_app.py) and hit it with curl to see
-both modes working against a real jetio-auth-backed app.
-
-## Why two limits on `/login`, not one
-
-Real credential-stuffing tools spread attempts across many IPs specifically
-to dodge IP-based rate limits. An IP-keyed limit alone catches noisy,
-single-source abuse; it does little against a botnet making 1-2 attempts
-per IP. Stack an account-keyed limit (`by_field("username")`) alongside it
--- whichever trips first blocks the request -- and a distributed attack
-against one account still gets caught.
-
-## Reusing a policy across routes
-
-`.protect()` (one limit per call) still works exactly as before -- nothing
-about it changed. `.protect_many()` is purely additive: pass a list of
-`Limit`s and it registers each one, so a route needing 2 stacked rules goes
-from 2 calls to 1. The bigger payoff is that `limits` is a plain Python
-list, reusable across every route that should share one policy:
-
-```python
-for path in ["/login", "/register", "/reset-password"]:
-    limiter.protect_many(app, path=path, limits=AUTH_POLICY)
-```
-
-Without this, 30 endpoints needing the same 2-rule policy is 60
-near-identical `.protect()` calls -- tedious, and a typo'd limit on one
-route silently drifts out of sync with the rest. With a shared `Limit`
-list, changing the policy means editing it in one place.
+both modes working against a real jetio-auth-backed app. For why `/login`
+gets two stacked limits instead of one, how to reuse one policy across many
+routes, `by_header`-keyed API endpoints, using dependency mode outside
+CrudRouter, and more, see **[docs/USAGE.md](docs/USAGE.md)**.
 
 ## Status
 
 v0.1: sliding window algorithm, in-memory store, both API modes, IP/account/
-user keying, `protect_many()` for stacking multiple limits (or reusing one
-policy across many routes) in one call. Not yet done: Redis store (for
+header/user keying, `protect_many()` for stacking multiple limits (or
+reusing one policy across many routes) in one call. Not yet done: Redis store (for
 anything running more than one worker -- InMemoryStore's state is
 per-process), progressive lockout on repeat violations, an equivalent
 stacking helper for dependency mode, PyPI publish. See DESIGN.md's build

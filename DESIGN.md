@@ -240,6 +240,14 @@ construction.
    applied to many routes in a loop instead of duplicated. `.protect()`
    itself is untouched — fully backward compatible, `protect_many()` is a
    thin loop over it. No dependency-mode equivalent yet (see below).
+3c. ~~`by_header()` key function + `KeyContext.headers`~~ — done. Surfaced
+   while writing docs/USAGE.md: there was no way to key by a request header
+   (e.g. `X-API-Key` for machine-to-machine endpoints), only IP, body
+   fields, or resolved user. Added `headers: Dict[str, str]` (lowercase
+   keys) to `KeyContext`, populated in both modes (raw ASGI header list in
+   middleware.py, `request.headers` in dependency.py), plus `by_header(name)`
+   mirroring `by_field(name)`. Verified live, including on a `GET` route
+   (proving `.protect()` isn't POST-only, just POST-by-default).
 4. Progressive lockout layer — not started.
 4b. Dependency-mode stacking — not started. `.dependency()` returns one
    callable for one policy slot; stacking multiple checks there (the way
