@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jetio-ratelimit"
+version = "0.1.0"
+description = "Rate limiting plugin for the Jetio framework -- sliding-window, IP/account-keyed, middleware and Depends()-composable."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Stephen Burabari Tete", email = "cehtete@gmail.com" }]
+dependencies = [
+    "jetio>=1.2.2",
+]
+
+[project.optional-dependencies]
+redis = ["redis>=5.0"]
+dev = ["pytest", "pytest-asyncio", "httpx", "uvicorn", "jetio-auth"]
+
+[tool.setuptools.packages.find]
+include = ["jetio_ratelimit*"]
