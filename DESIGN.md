@@ -231,7 +231,21 @@ construction.
 3. ~~Account-keyed limiting + stacked IP+account limits on `/login`~~ —
    done, verified live: account-keyed limit trips independently of the
    IP-keyed one, and a different account from the same IP is unaffected.
+3b. ~~`Limit` + `RateLimiter.protect_many()`~~ — done. Raised by the user:
+   stacking N limits on one route was N `.protect()` calls, and repeating
+   the same stacked policy across many routes multiplied that further (30
+   endpoints x 2 rules = 60 near-identical lines). `protect_many(app, path,
+   limits: List[Limit])` collapses the per-route case to one call; the
+   bigger win is `limits` being a reusable list, so one shared policy can be
+   applied to many routes in a loop instead of duplicated. `.protect()`
+   itself is untouched — fully backward compatible, `protect_many()` is a
+   thin loop over it. No dependency-mode equivalent yet (see below).
 4. Progressive lockout layer — not started.
+4b. Dependency-mode stacking — not started. `.dependency()` returns one
+   callable for one policy slot; stacking multiple checks there (the way
+   `protect_many()` does for middleware) would need something that chains
+   several checks inside one callable, since `CrudRouter.policy` holds one
+   callable per method, not a list (confirmed from source, see above).
 5. `RedisStore` — not started; `RateLimitStore` protocol already supports
    swapping it in without touching `middleware.py`/`dependency.py`.
 6. Publish `v0.1.0` to PyPI; retrofit `playground/fixed-api`

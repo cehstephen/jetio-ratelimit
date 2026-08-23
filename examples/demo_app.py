@@ -7,7 +7,7 @@ behavior, same way the rest of this design was verified. See
 
 from jetio import Jetio, CrudRouter, JetioModel, add_swagger_ui, Base, engine, SessionLocal
 from jetio_auth import AuthRouter
-from jetio_ratelimit import RateLimiter, InMemoryStore, by_ip, by_field, by_user
+from jetio_ratelimit import RateLimiter, InMemoryStore, Limit, by_ip, by_field, by_user
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -37,9 +37,16 @@ limiter = RateLimiter(store=InMemoryStore())
 
 # Stacked limits on /login: IP-keyed (stops noisy single-source brute force)
 # AND account-keyed (stops distributed credential stuffing against one
-# account). Both must pass; either tripping blocks the request.
-limiter.protect(app, path="/login", max_attempts=5, window_seconds=60, key_func=by_ip)
-limiter.protect(app, path="/login", max_attempts=3, window_seconds=60, key_func=by_field("username"))
+# account). Both must pass; either tripping blocks the request. One call via
+# protect_many() instead of two separate .protect() calls -- and AUTH_POLICY
+# is a plain list, so the same two rules could be applied to /register or any
+# other auth-adjacent route with one more protect_many() call, not two more
+# .protect() calls.
+AUTH_POLICY = [
+    Limit(max_attempts=5, window_seconds=60, key_func=by_ip),
+    Limit(max_attempts=3, window_seconds=60, key_func=by_field("username")),
+]
+limiter.protect_many(app, path="/login", limits=AUTH_POLICY)
 
 # Dependency mode: rate-limit order creation per authenticated user,
 # composed with jetio-auth's own dependency inside a CrudRouter policy.

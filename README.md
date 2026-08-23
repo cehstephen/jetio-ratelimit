@@ -21,7 +21,7 @@ pip install -e .[dev]   # from this directory, for now -- not yet published
 ```python
 from jetio import Jetio, CrudRouter
 from jetio_auth import AuthRouter
-from jetio_ratelimit import RateLimiter, InMemoryStore, by_ip, by_field, by_user
+from jetio_ratelimit import RateLimiter, InMemoryStore, Limit, by_ip, by_field, by_user
 
 app = Jetio()
 auth = AuthRouter(User, company_name="My App")
@@ -30,10 +30,16 @@ auth.register_routes(app)  # POST /register, POST /login
 limiter = RateLimiter(store=InMemoryStore())
 
 # Middleware mode: protects /login, which AuthRouter registers internally --
-# there's no Depends() hook to attach to on a route we don't define. Two
-# calls stack two independent limits; either tripping blocks the request.
-limiter.protect(app, path="/login", max_attempts=5, window_seconds=60, key_func=by_ip)
-limiter.protect(app, path="/login", max_attempts=3, window_seconds=60, key_func=by_field("username"))
+# there's no Depends() hook to attach to on a route we don't define.
+# protect_many() stacks two independent limits in one call; either tripping
+# blocks the request. AUTH_POLICY is a plain list, so the same two rules
+# can be applied to /register or any other auth-adjacent route with one
+# more protect_many() call each -- see "Reusing a policy across routes" below.
+AUTH_POLICY = [
+    Limit(max_attempts=5, window_seconds=60, key_func=by_ip),
+    Limit(max_attempts=3, window_seconds=60, key_func=by_field("username")),
+]
+limiter.protect_many(app, path="/login", limits=AUTH_POLICY)
 
 # Dependency mode: composes into a CrudRouter policy, keyed by the
 # authenticated user rather than IP.
@@ -61,12 +67,33 @@ per IP. Stack an account-keyed limit (`by_field("username")`) alongside it
 -- whichever trips first blocks the request -- and a distributed attack
 against one account still gets caught.
 
+## Reusing a policy across routes
+
+`.protect()` (one limit per call) still works exactly as before -- nothing
+about it changed. `.protect_many()` is purely additive: pass a list of
+`Limit`s and it registers each one, so a route needing 2 stacked rules goes
+from 2 calls to 1. The bigger payoff is that `limits` is a plain Python
+list, reusable across every route that should share one policy:
+
+```python
+for path in ["/login", "/register", "/reset-password"]:
+    limiter.protect_many(app, path=path, limits=AUTH_POLICY)
+```
+
+Without this, 30 endpoints needing the same 2-rule policy is 60
+near-identical `.protect()` calls -- tedious, and a typo'd limit on one
+route silently drifts out of sync with the rest. With a shared `Limit`
+list, changing the policy means editing it in one place.
+
 ## Status
 
 v0.1: sliding window algorithm, in-memory store, both API modes, IP/account/
-user keying. Not yet done: Redis store (for anything running more than one
-worker -- InMemoryStore's state is per-process), progressive lockout on
-repeat violations, PyPI publish. See DESIGN.md's build order.
+user keying, `protect_many()` for stacking multiple limits (or reusing one
+policy across many routes) in one call. Not yet done: Redis store (for
+anything running more than one worker -- InMemoryStore's state is
+per-process), progressive lockout on repeat violations, an equivalent
+stacking helper for dependency mode, PyPI publish. See DESIGN.md's build
+order.
 
 ## Known limitations
 
