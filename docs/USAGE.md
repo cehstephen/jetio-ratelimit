@@ -337,7 +337,9 @@ so N workers means the effective limit is `configured_limit * N`. Not
 fixable until a shared store (Redis) ships; see DESIGN.md's build order.
 
 **`by_ip` always returns `"ip:unknown"`.** In dependency mode, this reads
-`request._scope["client"]` — a private Jetio attribute that may not be
-populated in every test harness or deployment shape (e.g. behind certain
-proxy configurations without `client` in the ASGI scope). Verify with a
-real running server, not a mocked request.
+`Request.client` (once [cehstephen/jetio#4](https://github.com/cehstephen/jetio/pull/4)
+ships) or falls back to the private `request._scope["client"]` on current
+jetio — either way, that value may not be populated in every test harness
+or deployment shape (e.g. behind certain proxy configurations without
+`client` in the ASGI scope). Verify with a real running server, not a
+mocked request.

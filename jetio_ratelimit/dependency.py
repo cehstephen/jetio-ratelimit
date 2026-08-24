@@ -15,6 +15,19 @@ from .keys import KeyContext, KeyFunc, by_ip
 from .stores import RateLimitStore
 
 
+def _resolve_client_ip(request) -> Optional[str]:
+    """Prefer the public Request.client attribute (jetio
+    cehstephen/jetio#4 adds this -- not yet merged/published as of
+    jetio 1.2.2). Falls back to the private _scope for compatibility with
+    whatever's actually on PyPI right now; once that fix ships and this
+    package's minimum jetio version is bumped past it, the fallback
+    branch simply never triggers and can be deleted."""
+    client = getattr(request, "client", None)
+    if client is None:
+        client = getattr(request, "_scope", {}).get("client")
+    return client[0] if client else None
+
+
 def make_dependency(
     store: RateLimitStore,
     name: str,
@@ -47,9 +60,7 @@ def make_dependency(
         if identity_dependency is not None:
             user = await identity_dependency(request, db)
 
-        scope = getattr(request, "_scope", {})
-        client = scope.get("client")
-        ip = client[0] if client else None
+        ip = _resolve_client_ip(request)
 
         body = {}
         if request.method in ("POST", "PUT"):

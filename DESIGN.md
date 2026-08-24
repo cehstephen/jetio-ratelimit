@@ -216,10 +216,15 @@ construction.
   builds the `JsonResponse` directly rather than raising through the
   framework's exception-handling path. Worth a real fix upstream.
 - **`Request` exposes no public client/IP accessor.** Only `self._scope`
-  (private). `dependency.py`'s `by_ip` support reads
-  `request._scope["client"]` — works, but is reaching into private API by
-  necessity. Worth Jetio core exposing `request.client` publicly; other
-  consumers (logging, audit trails) will hit the same wall.
+  (private). Fixed upstream in
+  [cehstephen/jetio#4](https://github.com/cehstephen/jetio/pull/4) (adds a
+  public `Request.client`), not yet merged/published as of jetio 1.2.2.
+  `dependency.py`'s `_resolve_client_ip()` prefers the public attribute and
+  falls back to `request._scope["client"]` so this package works against
+  either jetio version in the meantime — verified directly against both a
+  fake pre-fix `Request` stand-in and the real fixed `jetio.Request` (built
+  from the PR branch). Delete the fallback once the fix ships and this
+  package's minimum jetio version is bumped past it.
 
 ## Build order
 
