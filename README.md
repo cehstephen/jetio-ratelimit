@@ -1,5 +1,10 @@
 # jetio-ratelimit
 
+![Tests](https://github.com/cehstephen/jetio-ratelimit/actions/workflows/tests.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/cehstephen/jetio-ratelimit/badge.svg?branch=main)](https://coveralls.io/github/cehstephen/jetio-ratelimit?branch=main)
+![Python versions](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
+![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)
+
 Rate limiting for [Jetio](https://pypi.org/project/jetio/): sliding-window
 by default, IP- or account-keyed (or both, stacked), usable as middleware
 for routes you don't own the handler for (like jetio-auth's `/login`) and
