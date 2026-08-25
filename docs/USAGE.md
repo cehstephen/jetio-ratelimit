@@ -243,22 +243,19 @@ content-type: application/json
 {"error": "Too many attempts, try again later."}
 ```
 
-**Dependency mode** raises `starlette.exceptions.HTTPException(429)`.
-Jetio core's exception handler currently discards `HTTPException.headers`
-(confirmed against jetio 1.2.2), so there's no `Retry-After` header — the
-retry time is embedded in the message text instead:
+**Dependency mode** raises `starlette.exceptions.HTTPException(429,
+headers={"Retry-After": ...})`. As of jetio 1.2.3 (this package's minimum
+version), Jetio's exception handler propagates `HTTPException.headers`, so
+you get the same real `Retry-After` header as middleware mode, plus the
+retry time in the message text:
 
 ```
 HTTP/1.1 429 Too Many Requests
+retry-after: 38
 content-type: application/json
 
 {"detail": "Too many requests, retry after 38s"}
 ```
-
-If your client needs a machine-readable retry time from a dependency-mode
-route, parse it out of `detail` for now (`retry after (\d+)s`), or prefer
-middleware mode for routes where that matters until Jetio core exposes
-`HTTPException.headers` (see DESIGN.md).
 
 ## Choosing limits and windows
 
@@ -337,9 +334,8 @@ so N workers means the effective limit is `configured_limit * N`. Not
 fixable until a shared store (Redis) ships; see DESIGN.md's build order.
 
 **`by_ip` always returns `"ip:unknown"`.** In dependency mode, this reads
-`Request.client` (once [cehstephen/jetio#4](https://github.com/cehstephen/jetio/pull/4)
-ships) or falls back to the private `request._scope["client"]` on current
-jetio — either way, that value may not be populated in every test harness
+the public `Request.client` attribute (jetio 1.2.3+, this package's
+minimum version) — that value may not be populated in every test harness
 or deployment shape (e.g. behind certain proxy configurations without
 `client` in the ASGI scope). Verify with a real running server, not a
 mocked request.

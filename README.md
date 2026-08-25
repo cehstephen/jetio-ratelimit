@@ -81,18 +81,5 @@ order.
   each one has its own counters, so the effective limit becomes
   `limit * worker_count`. Don't treat this as sufficient for a
   horizontally-scaled deployment yet.
-- **`Retry-After` header only in middleware mode.** Dependency mode raises
-  `starlette.exceptions.HTTPException(429)`, and Jetio core's exception
-  handler currently discards `.headers` on the way out (confirmed against
-  jetio 1.2.2 -- it only reads `.detail`/`.status_code`). The retry time is
-  embedded in the error message text instead. Worth a real fix upstream.
-- **`by_ip` in dependency mode prefers `Request.client`, with a fallback.**
-  A public `Request.client` attribute is fixed upstream in
-  [cehstephen/jetio#4](https://github.com/cehstephen/jetio/pull/4), not yet
-  merged/published (still 1.2.2 on PyPI as of this writing). Until it
-  ships, `_resolve_client_ip()` falls back to the private
-  `request._scope["client"]` so this keeps working either way -- once the
-  fix is published and this package's minimum jetio version is bumped past
-  it, the fallback branch can be deleted.
 - **No `X-Forwarded-For` support.** Behind a reverse proxy, `by_ip` sees the
   proxy's IP, not the real client's. Not yet configurable.

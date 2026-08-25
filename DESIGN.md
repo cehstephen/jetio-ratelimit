@@ -128,7 +128,7 @@ jetio_ratelimit/
 ## Relevant verified Jetio internals
 
 (Confirmed by reading `jetio/framework.py` source while building the
-prototype -- accurate as of jetio 1.2.2, re-verify if it's moved on.)
+prototype -- accurate as of jetio 1.2.3, re-verify if it's moved on.)
 
 - `app.add_middleware(cls, **kwargs)` does `self.app = cls(self.app, **kwargs)`
   — middleware wraps in reverse order of `add_middleware` calls.
@@ -207,24 +207,28 @@ construction.
 
 ## Verified real bugs found in Jetio / jetio-auth while building this
 
-- **`HTTPException.headers` is discarded by Jetio core.** Confirmed from
-  `jetio/framework.py`: `except StarletteHTTPException as e: response =
+Both fixed and published upstream as of jetio 1.2.3 — this package's
+minimum version, so neither needs a workaround here anymore.
+
+- ~~**`HTTPException.headers` is discarded by Jetio core.**~~ Confirmed
+  from `jetio/framework.py`: `except StarletteHTTPException as e: response =
   JsonResponse({"detail": e.detail}, status_code=e.status_code)` — no
   `.headers`. A raised `HTTPException(429, headers={"Retry-After": ...})`
-  silently loses that header. `dependency.py` works around it by embedding
-  the retry time in the message text; middleware mode is unaffected since it
-  builds the `JsonResponse` directly rather than raising through the
-  framework's exception-handling path. Worth a real fix upstream.
-- **`Request` exposes no public client/IP accessor.** Only `self._scope`
-  (private). Fixed upstream in
+  silently lost that header; `dependency.py` worked around it by embedding
+  the retry time in the message text (middleware mode was unaffected, since
+  it builds the `JsonResponse` directly rather than raising through the
+  framework's exception-handling path). **Fixed** in
+  [cehstephen/jetio#3](https://github.com/cehstephen/jetio/pull/3) —
+  `dependency.py` now raises with a real `headers={"Retry-After": ...}` and
+  it reaches the client, verified in `tests_e2e/test_public_api_scenarios.py`.
+- ~~**`Request` exposes no public client/IP accessor.**~~ Only
+  `self._scope` (private). **Fixed** in
   [cehstephen/jetio#4](https://github.com/cehstephen/jetio/pull/4) (adds a
-  public `Request.client`), not yet merged/published as of jetio 1.2.2.
-  `dependency.py`'s `_resolve_client_ip()` prefers the public attribute and
-  falls back to `request._scope["client"]` so this package works against
-  either jetio version in the meantime — verified directly against both a
-  fake pre-fix `Request` stand-in and the real fixed `jetio.Request` (built
-  from the PR branch). Delete the fallback once the fix ships and this
-  package's minimum jetio version is bumped past it.
+  public `Request.client`). `dependency.py`'s `_resolve_client_ip()`
+  previously preferred the public attribute and fell back to
+  `request._scope["client"]` so this package worked against either jetio
+  version in the meantime; the fallback has been deleted now that the fix
+  is published and this package's minimum jetio version is bumped past it.
 
 ## Build order
 
