@@ -9,6 +9,27 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 
 ---
 
+Version 0.1.1
+=============
+
+Documentation
+-------------
+
+*   **Fixed internal links for PyPI's rendered page**:
+    The Usage Guide, Design & Architecture doc, and Roadmap were linked with relative paths, which GitHub resolves against the repo tree but PyPI does not -- it renders the README standalone, so every one of these 404'd there. Switched to absolute GitHub URLs, and reworded the link text to read as titles ("Usage Guide") rather than raw filenames ("docs/USAGE.md").
+
+*   **Added status badges**: PyPI version, CI tests, Coveralls coverage, supported Python versions, and license.
+
+*   **Added PyPI packaging metadata**: classifiers and project URLs (homepage, bug tracker).
+
+*   **Reframed the `X-Forwarded-For` limitation as a deliberate default, not an oversight**:
+    ``by_ip`` ignoring ``X-Forwarded-For`` was previously documented as "not yet configurable." Explained why: trusting a client-suppliable header unconditionally would let a caller spoof their rate-limit identity. See the `Roadmap <https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md#roadmap>`_ for what a real implementation needs.
+
+*   **Rewrote DESIGN.md in a documentation voice**:
+    Replaced first-person build narration and strikethrough checklists with the same design rationale, verified Jetio internals, and bugs-found-and-fixed content presented as reference documentation rather than a build log.
+
+---
+
 Version 0.1.0
 =============
 
