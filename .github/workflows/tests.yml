@@ -25,12 +25,18 @@ jobs:
       - name: Verify import
         run: python -c "import jetio_ratelimit; print(jetio_ratelimit.__file__)"
       - name: Run unit tests with coverage
-        run: pytest tests/ --cov=jetio_ratelimit --cov-report=xml
-      - name: Run end-to-end scenario tests
+        run: pytest tests/ --cov=jetio_ratelimit
+      - name: Run end-to-end scenario tests with coverage
         # Real subprocess-launched scenario apps over real HTTP (see DESIGN.md) --
         # kept as a separate step so a failure here is never confused with a
-        # unit test failure in CI's summary.
-        run: pytest tests_e2e/
+        # unit test failure in CI's summary. --cov-append keeps this step's
+        # coverage (including the scenario apps' own subprocess data, merged
+        # in automatically by pytest-cov via [tool.coverage.run] parallel=true
+        # -- see tests_e2e/conftest.py) on top of the unit tests' coverage
+        # rather than overwriting it.
+        run: pytest tests_e2e/ --cov=jetio_ratelimit --cov-append
+      - name: Generate coverage report
+        run: coverage xml
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
         with:

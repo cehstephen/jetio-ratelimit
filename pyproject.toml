@@ -20,3 +20,12 @@ dev = ["pytest", "pytest-asyncio", "pytest-cov", "httpx", "uvicorn", "jetio-auth
 
 [tool.setuptools.packages.find]
 include = ["jetio_ratelimit*"]
+
+[tool.coverage.run]
+source = ["jetio_ratelimit"]
+# Scenario apps in tests_e2e run as real subprocesses (real uvicorn, real
+# TCP) rather than in-process -- coverage.py can't see into a child process
+# unless it's launched under `coverage run --parallel-mode` itself (see
+# tests_e2e/conftest.py). `parallel = true` makes pytest-cov auto-discover
+# and merge those subprocess .coverage.* data files into the main report.
+parallel = true

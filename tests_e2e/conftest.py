@@ -16,6 +16,7 @@ import httpx
 import pytest
 
 APPS_DIR = Path(__file__).parent / "apps"
+REPO_ROOT = Path(__file__).parent.parent
 
 
 def _free_port() -> int:
@@ -47,6 +48,17 @@ def run_scenario_app(tmp_path, script_name: str, extra_env: dict = None):
     env = {
         "PYTHONIOENCODING": "utf-8",
         "JETIO_APP_PORT": str(port),
+        # Run under `coverage run --parallel-mode` (below) rather than a
+        # plain `python <script>`, so this subprocess's execution counts
+        # toward the coverage report -- otherwise every line only these
+        # scenario apps exercise (most of middleware.py, dependency.py's
+        # actual check) shows up as untested even though it's the whole
+        # point of this suite. COVERAGE_FILE/RCFILE are absolute paths
+        # since cwd is tmp_path, not the repo -- coverage won't find
+        # pyproject.toml's [tool.coverage.run] config or write its data
+        # file next to the main run's otherwise.
+        "COVERAGE_FILE": str(REPO_ROOT / ".coverage"),
+        "COVERAGE_RCFILE": str(REPO_ROOT / "pyproject.toml"),
         **(extra_env or {}),
     }
     import os
@@ -54,7 +66,7 @@ def run_scenario_app(tmp_path, script_name: str, extra_env: dict = None):
     full_env = {**os.environ, **env}
 
     process = subprocess.Popen(
-        [sys.executable, str(script)],
+        [sys.executable, "-m", "coverage", "run", "--parallel-mode", str(script)],
         cwd=str(tmp_path),
         env=full_env,
         stdout=subprocess.PIPE,
