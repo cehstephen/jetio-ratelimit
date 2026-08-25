@@ -34,7 +34,7 @@ jobs:
         # in automatically by pytest-cov via [tool.coverage.run] parallel=true
         # -- see tests_e2e/conftest.py) on top of the unit tests' coverage
         # rather than overwriting it.
-        run: pytest tests_e2e/ --cov=jetio_ratelimit --cov-append
+        run: pytest tests_e2e/ --cov=jetio_ratelimit --cov-append --cov-report=term-missing
       - name: Generate coverage report
         run: coverage xml
       - name: Upload coverage to Coveralls
