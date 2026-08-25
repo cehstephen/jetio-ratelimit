@@ -16,13 +16,12 @@ class TestFreeTierIPLimiting:
         blocked = httpx.get(f"{public_api_app}/catalog/free")
         assert blocked.status_code == 429
         # /catalog/free uses dependency mode (Depends(), not middleware),
-        # which raises through Jetio's HTTPException path -- no Retry-After
-        # header there as of jetio 1.2.2 (see docs/USAGE.md "Handling a
-        # 429"), so the retry time is embedded in the message text instead.
-        # This is documenting the current real limitation, not asserting a
-        # bug -- middleware-mode routes (e.g. /login in the SaaS scenario)
-        # do get a real header; see test_saas_scenarios.py.
-        assert "retry-after" not in {k.lower() for k in blocked.headers}
+        # which raises through Jetio's HTTPException path. As of jetio 1.2.3
+        # (this package's minimum version), that path propagates
+        # HTTPException.headers, so a real Retry-After reaches the client
+        # here too -- same as middleware-mode routes (e.g. /login in the
+        # SaaS scenario, see test_saas_scenarios.py).
+        assert blocked.headers.get("retry-after") is not None
         assert "retry after" in blocked.json()["detail"]
 
 

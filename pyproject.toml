@@ -11,12 +11,12 @@ requires-python = ">=3.10"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Stephen Burabari Tete", email = "cehtete@gmail.com" }]
 dependencies = [
-    "jetio>=1.2.2",
+    "jetio>=1.2.3",
 ]
 
 [project.optional-dependencies]
 redis = ["redis>=5.0"]
-dev = ["pytest", "pytest-asyncio", "httpx", "uvicorn", "jetio-auth"]
+dev = ["pytest", "pytest-asyncio", "pytest-cov", "httpx", "uvicorn", "jetio-auth>=0.2.4"]
 
 [tool.setuptools.packages.find]
 include = ["jetio_ratelimit*"]

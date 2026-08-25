@@ -16,15 +16,11 @@ from .stores import RateLimitStore
 
 
 def _resolve_client_ip(request) -> Optional[str]:
-    """Prefer the public Request.client attribute (jetio
-    cehstephen/jetio#4 adds this -- not yet merged/published as of
-    jetio 1.2.2). Falls back to the private _scope for compatibility with
-    whatever's actually on PyPI right now; once that fix ships and this
-    package's minimum jetio version is bumped past it, the fallback
-    branch simply never triggers and can be deleted."""
+    """Request.client is public as of jetio 1.2.3 (cehstephen/jetio#4) --
+    this package's minimum jetio version. No fallback needed; kept as its
+    own function for the same reason it always was: a stable, single spot
+    to read this from, testable without a real Request object."""
     client = getattr(request, "client", None)
-    if client is None:
-        client = getattr(request, "_scope", {}).get("client")
     return client[0] if client else None
 
 
@@ -46,13 +42,11 @@ def make_dependency(
     check truthiness on -- it doesn't need a *second*, separate auth
     dependency in the same policy slot.
 
-    Note: a blocked request raises starlette.exceptions.HTTPException(429).
-    Jetio core's exception handler currently discards HTTPException.headers
-    (verified against jetio 1.2.2 -- it only reads .detail/.status_code), so
-    the Retry-After value is embedded in the message text here instead of a
-    header. Middleware mode does not have this limitation, since it builds
-    the 429 JsonResponse directly rather than raising through the framework's
-    exception-handling path -- worth a real fix upstream.
+    A blocked request raises starlette.exceptions.HTTPException(429,
+    headers={"Retry-After": ...}). Jetio's exception handler propagates
+    HTTPException.headers as of jetio 1.2.3 (cehstephen/jetio#3) -- this
+    package's minimum version -- so a real Retry-After header reaches the
+    client here, the same as middleware mode.
     """
 
     async def _dependency(request: Request, db: AsyncSession):
@@ -81,6 +75,7 @@ def make_dependency(
             raise HTTPException(
                 status_code=429,
                 detail=f"Too many requests, retry after {result.retry_after_seconds}s",
+                headers={"Retry-After": str(result.retry_after_seconds)},
             )
 
         return user if identity_dependency is not None else True
