@@ -47,8 +47,7 @@ jobs:
           sleep 3
           echo "sending SIGTERM to $SERVER_PID"
           kill -TERM $SERVER_PID
-          wait $SERVER_PID
-          echo "exit code: $?"
+          wait $SERVER_PID || echo "exit code: $?"
           ls -la .coverage* || echo "NO COVERAGE FILES FOUND"
           rm -f .coverage*
       - name: Run end-to-end scenario tests with coverage
