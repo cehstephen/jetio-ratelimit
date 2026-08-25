@@ -26,32 +26,6 @@ jobs:
         run: python -c "import jetio_ratelimit; print(jetio_ratelimit.__file__)"
       - name: Run unit tests with coverage
         run: pytest tests/ --cov=jetio_ratelimit
-      - name: DEBUG does any atexit hook fire after uvicorn SIGTERM shutdown
-        run: |
-          rm -f /tmp/atexit_ran.txt
-          cat > /tmp/tinyserver2.py <<'EOF'
-          import atexit
-          def _mark():
-              with open("/tmp/atexit_ran.txt", "w") as f:
-                  f.write("yes")
-          atexit.register(_mark)
-          import uvicorn
-          from starlette.applications import Starlette
-          from starlette.responses import PlainTextResponse
-          from starlette.routing import Route
-          async def home(request):
-              return PlainTextResponse("ok")
-          app = Starlette(routes=[Route("/", home)])
-          if __name__ == "__main__":
-              uvicorn.run(app, host="127.0.0.1", port=8999)
-          EOF
-          python /tmp/tinyserver2.py &
-          SERVER_PID=$!
-          sleep 3
-          echo "sending SIGTERM to $SERVER_PID"
-          kill -TERM $SERVER_PID
-          wait $SERVER_PID || echo "exit code: $?"
-          cat /tmp/atexit_ran.txt 2>&1 || echo "ATEXIT NEVER RAN"
       - name: Run end-to-end scenario tests with coverage
         # Real subprocess-launched scenario apps over real HTTP (see DESIGN.md) --
         # kept as a separate step so a failure here is never confused with a

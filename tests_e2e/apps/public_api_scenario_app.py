@@ -6,6 +6,7 @@ tests_e2e/test_public_api_scenarios.py.
 
 import os
 
+import _coverage_shutdown
 from jetio import Jetio, Request, JsonResponse, Depends, add_swagger_ui
 from jetio_ratelimit import RateLimiter, InMemoryStore, by_header, by_ip
 
@@ -39,4 +40,5 @@ async def catalog_partner(request: Request, ok=Depends(partner_tier_limit)):
 
 
 if __name__ == "__main__":
+    _coverage_shutdown.install()
     app.run(host="127.0.0.1", port=int(os.environ["JETIO_APP_PORT"]))

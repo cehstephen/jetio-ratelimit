@@ -5,6 +5,7 @@ product would, not a minimal toy. Used by tests_e2e/test_saas_scenarios.py.
 
 import os
 
+import _coverage_shutdown
 from jetio import Jetio, CrudRouter, JetioModel, add_swagger_ui, Base, engine, SessionLocal
 from jetio_auth import AuthRouter
 from jetio_ratelimit import RateLimiter, InMemoryStore, Limit, by_ip, by_field, by_user
@@ -88,4 +89,5 @@ async def init_db():
 
 
 if __name__ == "__main__":
+    _coverage_shutdown.install()
     app.run(host="127.0.0.1", port=int(os.environ["JETIO_APP_PORT"]))
