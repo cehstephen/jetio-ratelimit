@@ -26,6 +26,31 @@ jobs:
         run: python -c "import jetio_ratelimit; print(jetio_ratelimit.__file__)"
       - name: Run unit tests with coverage
         run: pytest tests/ --cov=jetio_ratelimit
+      - name: DEBUG subprocess coverage flush on SIGTERM
+        run: |
+          cat > /tmp/tinyserver.py <<'EOF'
+          import jetio_ratelimit
+          import uvicorn
+          from starlette.applications import Starlette
+          from starlette.responses import PlainTextResponse
+          from starlette.routing import Route
+          async def home(request):
+              return PlainTextResponse("ok")
+          app = Starlette(routes=[Route("/", home)])
+          if __name__ == "__main__":
+              uvicorn.run(app, host="127.0.0.1", port=8998)
+          EOF
+          rm -f .coverage*
+          COVERAGE_FILE="$PWD/.coverage" COVERAGE_RCFILE="$PWD/pyproject.toml" \
+            python -m coverage run --parallel-mode /tmp/tinyserver.py &
+          SERVER_PID=$!
+          sleep 3
+          echo "sending SIGTERM to $SERVER_PID"
+          kill -TERM $SERVER_PID
+          wait $SERVER_PID
+          echo "exit code: $?"
+          ls -la .coverage* || echo "NO COVERAGE FILES FOUND"
+          rm -f .coverage*
       - name: Run end-to-end scenario tests with coverage
         # Real subprocess-launched scenario apps over real HTTP (see DESIGN.md) --
         # kept as a separate step so a failure here is never confused with a
