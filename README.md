@@ -87,4 +87,11 @@ stacking helper for dependency mode, PyPI publish. See
   `limit * worker_count`. Don't treat this as sufficient for a
   horizontally-scaled deployment yet.
 - **No `X-Forwarded-For` support.** Behind a reverse proxy, `by_ip` sees the
-  proxy's IP, not the real client's. Not yet configurable.
+  proxy's IP, not the real client's. This is a deliberate default, not an
+  oversight: `X-Forwarded-For` is a client-suppliable header, so trusting it
+  unconditionally lets any caller spoof their rate-limit identity -- evading
+  their own limit, or framing another IP for one. Other rate limiters that
+  do support it require you to explicitly configure how many proxy hops (or
+  which ones) to trust, precisely to avoid this; naive header-trusting is a
+  known footgun, not just a missing feature. See
+  [DESIGN.md's Roadmap](DESIGN.md#roadmap).

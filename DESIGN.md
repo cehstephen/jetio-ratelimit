@@ -212,3 +212,14 @@ jetio 1.2.3 (this package's minimum version):
   per method, not a list.
 - `RedisStore` — the `RateLimitStore` protocol already supports swapping
   this in without touching `middleware.py`/`dependency.py`.
+- Trusted-proxy-aware `X-Forwarded-For` support — `by_ip` currently reads
+  only the raw ASGI socket peer (`scope["client"]` / `Request.client`),
+  which is the proxy's IP when behind one, not the real client's. This is
+  deliberate for now: `X-Forwarded-For` is client-suppliable, so trusting
+  it unconditionally lets any caller spoof their rate-limit identity. A
+  real implementation needs explicit configuration of how many proxy hops
+  (or which source IPs/CIDRs) to trust, taking the first untrusted address
+  from the right of the chain rather than the leftmost value — the same
+  constraint other rate limiters that support this enforce, since blind
+  header-trusting is a known, well-documented footgun in this space, not
+  just a missing feature.
