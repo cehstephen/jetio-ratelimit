@@ -4,7 +4,7 @@ Every example below has been run against a real `jetio`/`jetio-auth` app and
 checked with curl, the same way the rest of this package was built — none
 of this is speculative. For the *why* behind the design (sliding window vs
 token bucket, IP-vs-account keying, the bugs found in Jetio along the way),
-see [DESIGN.md](../DESIGN.md). This doc is the *how*.
+see [Design & Architecture](../DESIGN.md). This doc is the *how*.
 
 ## Table of contents
 
@@ -331,7 +331,7 @@ accidentally reuse the same one across unrelated limits.
 **My limit is looser than I configured, behind a load balancer.**
 `InMemoryStore` is per-process — each worker/replica has its own counters,
 so N workers means the effective limit is `configured_limit * N`. Not
-fixable until a shared store (Redis) ships; see [DESIGN.md's Roadmap](../DESIGN.md#roadmap).
+fixable until a shared store (Redis) ships; see the [Roadmap](../DESIGN.md#roadmap).
 
 **`by_ip` always returns `"ip:unknown"`.** In dependency mode, this reads
 the public `Request.client` attribute (jetio 1.2.3+, this package's

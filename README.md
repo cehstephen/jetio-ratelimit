@@ -12,11 +12,11 @@ for routes you don't own the handler for (like jetio-auth's `/login`) and
 as a `Depends()`-composable dependency for routes you do (a `CrudRouter`
 policy, a hand-written route).
 
-- **[docs/USAGE.md](https://github.com/cehstephen/jetio-ratelimit/blob/main/docs/USAGE.md)**
+- **[Usage Guide](https://github.com/cehstephen/jetio-ratelimit/blob/main/docs/USAGE.md)**
   -- the full guide: every mode, every key function, stacking/reusing
   policies, handling a 429, testing your integration, troubleshooting.
   Start here for "how do I do X."
-- **[DESIGN.md](https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md)**
+- **[Design & Architecture](https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md)**
   -- the reasoning: why sliding window over token bucket, why IP-only
   limiting is weak against real credential stuffing, and the real bugs
   found in Jetio/jetio-auth along the way. Start here for "why does it
@@ -77,8 +77,8 @@ Run [examples/demo_app.py](https://github.com/cehstephen/jetio-ratelimit/blob/ma
 and hit it with curl to see both modes working against a real
 jetio-auth-backed app. For why `/login` gets two stacked limits instead of
 one, how to reuse one policy across many routes, `by_header`-keyed API
-endpoints, using dependency mode outside CrudRouter, and more, see
-**[docs/USAGE.md](https://github.com/cehstephen/jetio-ratelimit/blob/main/docs/USAGE.md)**.
+endpoints, using dependency mode outside CrudRouter, and more, see the
+**[Usage Guide](https://github.com/cehstephen/jetio-ratelimit/blob/main/docs/USAGE.md)**.
 
 ## Status
 
@@ -89,7 +89,7 @@ reusing one policy across many routes) in one call. Not yet done: Redis store (f
 anything running more than one worker -- InMemoryStore's state is
 per-process), progressive lockout on repeat violations, an equivalent
 stacking helper for dependency mode, trusted-proxy-aware `X-Forwarded-For`
-support. See [DESIGN.md's Roadmap](https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md#roadmap).
+support. See [Roadmap](https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md#roadmap).
 
 ## Known limitations
 
@@ -105,4 +105,4 @@ support. See [DESIGN.md's Roadmap](https://github.com/cehstephen/jetio-ratelimit
   do support it require you to explicitly configure how many proxy hops (or
   which ones) to trust, precisely to avoid this; naive header-trusting is a
   known footgun, not just a missing feature. See
-  [DESIGN.md's Roadmap](https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md#roadmap).
+  [Roadmap](https://github.com/cehstephen/jetio-ratelimit/blob/main/DESIGN.md#roadmap).

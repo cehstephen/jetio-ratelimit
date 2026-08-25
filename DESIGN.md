@@ -6,8 +6,8 @@ as global middleware and as a `Depends()`-injectable dependency, so it composes
 with `CrudRouter(policy={...})` the same way `AuthPolicy.owner_or_admin()` does.
 
 This document explains *why* the package is built the way it is. For usage,
-see [docs/USAGE.md](docs/USAGE.md); for current limitations, see
-[README.md](README.md#known-limitations).
+see the [Usage Guide](docs/USAGE.md); for current limitations, see the
+[README](README.md#known-limitations).
 
 ## Design decisions
 
