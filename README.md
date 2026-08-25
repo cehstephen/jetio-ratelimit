@@ -77,8 +77,8 @@ header/user keying, `protect_many()` for stacking multiple limits (or
 reusing one policy across many routes) in one call. Not yet done: Redis store (for
 anything running more than one worker -- InMemoryStore's state is
 per-process), progressive lockout on repeat violations, an equivalent
-stacking helper for dependency mode, PyPI publish. See DESIGN.md's build
-order.
+stacking helper for dependency mode, PyPI publish. See
+[DESIGN.md's Roadmap](DESIGN.md#roadmap).
 
 ## Known limitations
 

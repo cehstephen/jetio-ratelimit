@@ -331,7 +331,7 @@ accidentally reuse the same one across unrelated limits.
 **My limit is looser than I configured, behind a load balancer.**
 `InMemoryStore` is per-process — each worker/replica has its own counters,
 so N workers means the effective limit is `configured_limit * N`. Not
-fixable until a shared store (Redis) ships; see DESIGN.md's build order.
+fixable until a shared store (Redis) ships; see [DESIGN.md's Roadmap](../DESIGN.md#roadmap).
 
 **`by_ip` always returns `"ip:unknown"`.** In dependency mode, this reads
 the public `Request.client` attribute (jetio 1.2.3+, this package's

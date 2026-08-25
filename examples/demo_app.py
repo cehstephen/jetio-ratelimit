@@ -1,8 +1,8 @@
 """Live integration example: jetio + jetio-auth + jetio-ratelimit together.
 
-Not a unit test -- run it and hit it with curl/httpx to prove out real
-behavior, same way the rest of this design was verified. See
-../DESIGN.md's build order, step 2/3.
+Not a unit test -- run it and hit it with curl/httpx to see both API modes
+(middleware on /login, dependency mode on order creation) working against a
+real jetio-auth-backed app. See ../DESIGN.md for the design reasoning.
 """
 
 from jetio import Jetio, CrudRouter, JetioModel, add_swagger_ui, Base, engine, SessionLocal

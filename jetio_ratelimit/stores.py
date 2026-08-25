@@ -3,7 +3,7 @@
 InMemoryStore is correct for a single worker process only: behind multiple
 workers or replicas, each process holds its own counters, so the effective
 limit silently becomes `limit * worker_count`. A RedisStore (sharing state
-across processes) is planned -- see ../DESIGN.md's build order -- but not
+across processes) is planned -- see ../DESIGN.md's Roadmap -- but not
 yet implemented; anyone running more than one worker should not treat
 InMemoryStore as sufficient.
 """
