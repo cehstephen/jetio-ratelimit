@@ -1,5 +1,6 @@
 # jetio-ratelimit
 
+![PyPI version](https://img.shields.io/pypi/v/jetio-ratelimit)
 ![Tests](https://github.com/cehstephen/jetio-ratelimit/actions/workflows/tests.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/cehstephen/jetio-ratelimit/badge.svg?branch=main)](https://coveralls.io/github/cehstephen/jetio-ratelimit?branch=main)
 ![Python versions](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
@@ -22,7 +23,13 @@ policy, a hand-written route).
 ## Install
 
 ```
-pip install -e .[dev]   # from this directory, for now -- not yet published
+pip install jetio-ratelimit
+```
+
+For local development (running the test suite, contributing):
+
+```
+pip install -e .[dev]   # from this directory
 ```
 
 ## Quickstart
@@ -72,13 +79,14 @@ CrudRouter, and more, see **[docs/USAGE.md](docs/USAGE.md)**.
 
 ## Status
 
-v0.1: sliding window algorithm, in-memory store, both API modes, IP/account/
+[Published on PyPI](https://pypi.org/project/jetio-ratelimit/) as v0.1.0:
+sliding window algorithm, in-memory store, both API modes, IP/account/
 header/user keying, `protect_many()` for stacking multiple limits (or
 reusing one policy across many routes) in one call. Not yet done: Redis store (for
 anything running more than one worker -- InMemoryStore's state is
 per-process), progressive lockout on repeat violations, an equivalent
-stacking helper for dependency mode, PyPI publish. See
-[DESIGN.md's Roadmap](DESIGN.md#roadmap).
+stacking helper for dependency mode, trusted-proxy-aware `X-Forwarded-For`
+support. See [DESIGN.md's Roadmap](DESIGN.md#roadmap).
 
 ## Known limitations
 
